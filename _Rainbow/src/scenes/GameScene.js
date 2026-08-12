@@ -274,16 +274,17 @@ export default class GameScene extends Phaser.Scene {
   }
 
   buildTapHints() {
-    // extra margin from the very bottom edge, since content that close to
-    // the edge is the first to get squeezed by mobile browser chrome
-    const y = GAME_HEIGHT - 110;
+    // back on Scale.FIT the whole game frame is always fully visible (never
+    // cropped by mobile browser chrome), so these can sit close to the
+    // bottom edge again
+    const y = GAME_HEIGHT - 60;
     const buildArrow = (cx, dir) => {
       const g = this.add.graphics().setDepth(45).setAlpha(0.55);
       g.fillStyle(0xffffff, 1);
       g.lineStyle(2, 0x2a0f4a, 0.6);
       const tri = dir < 0
-        ? [cx + 9, y - 11, cx - 9, y, cx + 9, y + 11]
-        : [cx - 9, y - 11, cx + 9, y, cx - 9, y + 11];
+        ? [cx + 13, y - 16, cx - 13, y, cx + 13, y + 16]
+        : [cx - 13, y - 16, cx + 13, y, cx - 13, y + 16];
       g.fillTriangle(...tri);
       g.strokeTriangle(...tri);
       this.tweens.add({
