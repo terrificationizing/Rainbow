@@ -32,7 +32,9 @@ body {
 
 #app canvas {
   image-rendering: pixelated;
-  max-width: 100%;
-  max-height: 100%;
+  /* no max-width/max-height here: Scale.ENVELOP deliberately sizes the canvas
+     larger than the viewport in one dimension so the excess can spill outside
+     and get cropped by html/body's overflow:hidden. Capping both axes to 100%
+     independently overrode Phaser's own sizing and squashed the aspect ratio. */
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
 }
