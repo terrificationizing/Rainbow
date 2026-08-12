@@ -47,7 +47,10 @@ function buildUtterance(text, voice, pitch, rate) {
 export function unlockSpeech() {
   if (!('speechSynthesis' in window)) return;
   const primer = new SpeechSynthesisUtterance(' ');
-  primer.volume = 0;
+  // near-silent, not truly 0 -- some engines treat a 0-volume utterance as
+  // producing no real output and don't fully register it as "played" for
+  // gesture-unlock purposes
+  primer.volume = 0.01;
   window.speechSynthesis.speak(primer);
   // kicks off voice-list loading early too, so it's more likely to already
   // be populated by the time a real speakFlavor() call needs it
