@@ -34,9 +34,9 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  /* the game deliberately renders edge-to-edge (viewport-fit=cover in
-     index.html + Scale.ENVELOP), so without this, real content ends up
-     drawn underneath the iOS status bar / notch / home-indicator */
+  /* harmless even on Scale.FIT (which already keeps the whole game inside
+     the viewport on its own) -- just nudges the letterboxed frame in a
+     touch further from the notch/home-indicator on devices that have them */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
@@ -45,9 +45,12 @@ body {
 
 #app canvas {
   image-rendering: pixelated;
-  /* no max-width/max-height here: Scale.ENVELOP deliberately sizes the canvas
-     larger than the viewport in one dimension so the excess can spill outside
-     and get cropped by html/body's overflow:hidden. Capping both axes to 100%
-     independently overrode Phaser's own sizing and squashed the aspect ratio. */
+  /* back on Scale.FIT: this constrains the canvas to the flex container
+     without distorting its aspect ratio. (Scale.ENVELOP was tried briefly
+     and deliberately relied on NOT having this, sizing the canvas larger
+     than the viewport on purpose -- reverting the scale mode without also
+     reverting this is exactly what caused the stretched/skewed look.) */
+  max-width: 100%;
+  max-height: 100%;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
 }
