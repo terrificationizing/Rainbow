@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import * as Tone from 'tone';
-import { GAME_WIDTH, GAME_HEIGHT, SKITTLE_COLORS } from '../config.js';
+import { GAME_WIDTH, SKITTLE_COLORS } from '../config.js';
 import { createWindow, createCandy, paintSky, scatterGlitter, createEscButton } from '../ui.js';
-import { speakFlavor, speechDebug } from '../speech.js';
+import { speakFlavor } from '../speech.js';
 import { music } from '../audio.js';
 
 export default class ColorSelectScene extends Phaser.Scene {
@@ -37,24 +37,6 @@ export default class ColorSelectScene extends Phaser.Scene {
     const candyScale = 1.3;
 
     this.clickCounts = {};
-
-    // TEMPORARY on-screen diagnostic for the "voice doesn't play" report --
-    // shows speechSynthesis's real status live, no devtools needed. Safe to
-    // remove once that's sorted out.
-    const debugText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 20, 'speech: idle', {
-      fontFamily: 'Trebuchet MS, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5).setStroke('#000000', 3).setDepth(60);
-    this.time.addEvent({
-      delay: 150, loop: true,
-      // polled live state, not event callbacks -- onstart/onerror can be
-      // unreliable even when speech genuinely does or doesn't play, so this
-      // is the more trustworthy read on what the browser is actually doing
-      callback: () => {
-        const s = window.speechSynthesis;
-        const live = s ? `spk:${s.speaking ? 1 : 0} pend:${s.pending ? 1 : 0} pause:${s.paused ? 1 : 0}` : 'no API';
-        debugText.setText(`speech: ${speechDebug.status} | ${live}`);
-      },
-    });
 
     SKITTLE_COLORS.forEach((c, i) => {
       const x = centerX;
