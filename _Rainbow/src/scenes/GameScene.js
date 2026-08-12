@@ -446,7 +446,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.drawRoad();
-    this.checkBeach(laneIdxFloor);
+    this.checkBeach(laneIdxFloor, px);
     this.checkBoost(laneIdxFloor, px, boosted);
     this.updateBackgroundDecor(dt);
     this.checkTreeSpawn();
@@ -664,7 +664,7 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  checkBeach(laneIdxFloor) {
+  checkBeach(laneIdxFloor, px) {
     const seg = Math.floor(this.scrollDistance / SEG_LENGTH);
     const beachSide = beachSideForSegment(seg);
     const dangerLane = beachSide < 0 ? 0 : beachSide > 0 ? 2 : null;
@@ -673,6 +673,29 @@ export default class GameScene extends Phaser.Scene {
       this.sandDwellStart = null;
       return;
     }
+
+    // being in the outer lane isn't enough by itself -- the sand's own edge
+    // ripples in and out, and tapers to a thin sliver at the start/end of
+    // every beach stretch (see sandDepthAt), so it doesn't always reach all
+    // the way to where the player actually stands. Only count it if the
+    // rendered sand genuinely overlaps the player's position, using the
+    // same geometry drawRoad() uses at the player's own spot -- the pinned
+    // near/bottom end of the road, where halfW is always 176 and cx is
+    // always screen-center (depth === 1 there).
+    const halfW = 176;
+    const cx = GAME_WIDTH / 2;
+    const left = cx - halfW;
+    const right = cx + halfW;
+    const sandDepth = sandDepthAt(this.scrollDistance, seg, beachSide);
+    const onSand = beachSide < 0
+      ? px <= left + (right - left) * sandDepth
+      : px >= right - (right - left) * sandDepth;
+
+    if (!onSand) {
+      this.sandDwellStart = null;
+      return;
+    }
+
     // riding onto the sand isn't punished by itself -- only lingering there
     // long enough to drift out toward its outer edge actually drops you off,
     // and that's instant -- no more shrugging off a wipeout with a meter hit
