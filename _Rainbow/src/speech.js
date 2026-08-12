@@ -26,10 +26,6 @@ function pickMaleVoice(voices) {
   return unlabeled.find((v) => v.lang?.startsWith('en')) || unlabeled[0] || voices[0];
 }
 
-// temporary diagnostic state -- read this from a scene right after calling
-// speakFlavor() to see, on-screen, what actually happened (no devtools needed)
-export const speechDebug = { status: 'idle' };
-
 // Safari has a well-known bug where an utterance with no surviving JS
 // reference can get garbage-collected mid-flight -- speak() succeeds, no
 // error ever fires, but the utterance just silently vanishes before it's
@@ -45,9 +41,6 @@ function buildUtterance(text, voice, pitch, rate) {
   utter.pitch = pitch;
   utter.rate = rate;
   utter.volume = 0.9;
-  utter.onstart = () => { speechDebug.status = 'started ok'; };
-  utter.onerror = (e) => { speechDebug.status = `error: ${e.error}`; };
-  utter.onend = () => { if (speechDebug.status === 'started ok') speechDebug.status = 'finished ok'; };
   return utter;
 }
 
@@ -73,10 +66,7 @@ export function unlockSpeech() {
 }
 
 export function speakFlavor(text, { pitch = 0.3, rate = 0.6 } = {}) {
-  if (!('speechSynthesis' in window)) {
-    speechDebug.status = 'no speechSynthesis API';
-    return;
-  }
+  if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   // webkit/iOS can leave the synth stuck in a paused state after an earlier
   // interrupted utterance; resume() is a harmless no-op otherwise
@@ -92,7 +82,6 @@ export function speakFlavor(text, { pitch = 0.3, rate = 0.6 } = {}) {
   // and otherwise waited on the async getVoices() path below -- if voices
   // never populate on a given device, that meant NEVER actually speaking,
   // since the async path reliably misses iOS's gesture-linked speak() window.
-  speechDebug.status = `calling speak() (${voices.length} voices)`;
   const utter = buildUtterance(text, voices.length ? pickMaleVoice(voices) : null, pitch, rate);
   currentUtterance = utter; // keep alive -- see comment near the module-level let
   window.speechSynthesis.speak(utter);
