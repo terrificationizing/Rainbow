@@ -213,6 +213,71 @@ class MusicManager {
     });
   }
 
+  // A quick ascending "piano flourish" -- ripples up through a few notes and
+  // lands on a warm, chorused held chord (vaporwave chorus/reverb wash
+  // instead of a dry, literal piano sample), for toggling Music Mode on
+  // the color-pick screen.
+  playPianoToggle() {
+    const t = Tone.now();
+    const flourish = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'triangle' },
+      envelope: { attack: 0.004, decay: 0.3, sustain: 0.05, release: 0.6 },
+      volume: -14,
+    }).connect(this.chorus);
+    const run = ['C4', 'E4', 'G4', 'C5', 'E5'];
+    const step = 0.055;
+    run.forEach((note, i) => {
+      flourish.triggerAttackRelease(note, 0.22, t + i * step);
+    });
+    flourish.triggerAttackRelease(['E4', 'G4', 'C5'], 0.9, t + run.length * step);
+  }
+
+  // A smooth, breathy vaporwave sax solo -- a single sliding (portamento)
+  // voice with a light vibrato and a slurred, legato lick, for tapping the
+  // saxophone icon in Music Mode.
+  playSaxSolo() {
+    const t = Tone.now();
+    const vibrato = new Tone.Vibrato({ frequency: 5.5, depth: 0.15 }).connect(this.chorus);
+    const sax = new Tone.MonoSynth({
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.08, decay: 0.15, sustain: 0.7, release: 0.6 },
+      filter: { Q: 2, type: 'lowpass', rolloff: -24 },
+      filterEnvelope: { attack: 0.1, decay: 0.3, sustain: 0.5, release: 0.8, baseFrequency: 500, octaves: 2.5 },
+      portamento: 0.06,
+      volume: -10,
+    }).connect(vibrato);
+    const lick = ['E4', 'G4', 'A4', 'G4', 'C5', 'A4'];
+    const durs = [0.28, 0.22, 0.3, 0.22, 0.4, 0.55];
+    let when = t;
+    lick.forEach((note, i) => {
+      sax.triggerAttackRelease(note, durs[i], when);
+      when += durs[i] * 0.85; // slight overlap between notes for a slurred, legato feel
+    });
+  }
+
+  // A mellow, rounder vaporwave French horn solo -- lower register, slower
+  // legato notes, and a softer vibrato than the sax, for tapping the horn
+  // icon in Music Mode.
+  playHornSolo() {
+    const t = Tone.now();
+    const vibrato = new Tone.Vibrato({ frequency: 4.2, depth: 0.1 }).connect(this.chorus);
+    const horn = new Tone.MonoSynth({
+      oscillator: { type: 'triangle' },
+      envelope: { attack: 0.15, decay: 0.2, sustain: 0.75, release: 1.0 },
+      filter: { Q: 1, type: 'lowpass', rolloff: -24 },
+      filterEnvelope: { attack: 0.2, decay: 0.4, sustain: 0.6, release: 1.2, baseFrequency: 300, octaves: 2 },
+      portamento: 0.1,
+      volume: -9,
+    }).connect(vibrato);
+    const lick = ['C3', 'E3', 'G3', 'E3', 'A3'];
+    const durs = [0.5, 0.4, 0.5, 0.4, 0.9];
+    let when = t;
+    lick.forEach((note, i) => {
+      horn.triggerAttackRelease(note, durs[i], when);
+      when += durs[i] * 0.9;
+    });
+  }
+
   // A slow, moody chorus-drenched minor triad for collecting a CD on the
   // track -- a chill vaporwave pad rather than a bright "coin" chime, with
   // a soft sub for weight and a single hazy shimmer note drifting in late.
