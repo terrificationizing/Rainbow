@@ -17,17 +17,14 @@ export default class ColorSelectScene extends Phaser.Scene {
     createEscButton(this);
 
     const win = createWindow(this, 22, 70, GAME_WIDTH - 44, 110, 'YUMMMMM');
-    this.add.text(22 + (GAME_WIDTH - 44) / 2, 70 + 58, 'PICK A COLOR', {
+    // vertically centered in the inset panel now that CLICK TWICE! is gone --
+    // greys out while Music Mode is on, since tapping a skittle no longer
+    // does anything color-pick-related in that state (see setMusicMode)
+    this.pickColorText = this.add.text(22 + (GAME_WIDTH - 44) / 2, 70 + 38 + 34, 'PICK A COLOR', {
       fontFamily: 'Trebuchet MS, sans-serif',
       fontSize: '20px',
       fontStyle: 'bold',
       color: '#111111',
-    }).setOrigin(0.5);
-    this.add.text(22 + (GAME_WIDTH - 44) / 2, 70 + 78, 'CLICK TWICE!', {
-      fontFamily: 'Trebuchet MS, sans-serif',
-      fontSize: '11px',
-      fontStyle: 'bold',
-      color: '#6a1fb0',
     }).setOrigin(0.5);
 
     // tapping the body of the header box (below the title bar, so the X
@@ -47,10 +44,9 @@ export default class ColorSelectScene extends Phaser.Scene {
     const gap = 108;
     const candyScale = 1.3;
 
-    this.clickCounts = {};
     // off by default -- when on, tapping a skittle only plays its flavor
-    // sound (a pure soundboard) and never counts toward the normal
-    // click-twice-to-pick-a-color flow below
+    // sound (a pure soundboard) and never enters the game; when off, a
+    // single tap picks that color and enters the game directly
     this.musicMode = false;
     this.buildMusicModeToggle();
 
@@ -108,19 +104,14 @@ export default class ColorSelectScene extends Phaser.Scene {
           return;
         }
 
-        // whichever skittle is the first to reach two clicks wins, even if other
-        // skittles were clicked in between
-        this.clickCounts[c.key] = (this.clickCounts[c.key] || 0) + 1;
-        if (this.clickCounts[c.key] >= 2) {
-          this.registry.set('color', c.key);
-          speakFlavor('ha ha ha', c.voice);
-          music.playVehicleSpin();
-          this.tweens.add({ targets: candy, angle: candy.angle + 720, duration: 500, ease: 'Cubic.easeInOut' });
-          this.cameras.main.flash(200, 255, 255, 255);
-          this.time.delayedCall(500, () => this.scene.start('VehicleSelect'));
-          return;
-        }
-        playFlavorSound();
+        // off mode: a single tap picks this color and heads straight into
+        // the game -- no flavor voice on the way in anymore
+        this.registry.set('color', c.key);
+        speakFlavor('ha ha ha', c.voice);
+        music.playVehicleSpin();
+        this.tweens.add({ targets: candy, angle: candy.angle + 720, duration: 500, ease: 'Cubic.easeInOut' });
+        this.cameras.main.flash(200, 255, 255, 255);
+        this.time.delayedCall(500, () => this.scene.start('VehicleSelect'));
       });
 
       this.tweens.add({
@@ -205,10 +196,7 @@ export default class ColorSelectScene extends Phaser.Scene {
     this.setMusicMode = (on) => {
       if (this.musicMode === on) return;
       this.musicMode = on;
-      // whichever direction the switch flips, any clicks a skittle already
-      // had queued up before the flip shouldn't count toward the next
-      // click-twice-to-enter-the-game attempt -- always start that fresh
-      this.clickCounts = {};
+      this.pickColorText.setColor(on ? '#aaaaaa' : '#111111');
       drawTrack(on);
       this.tweens.add({
         targets: knob,
