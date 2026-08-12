@@ -216,7 +216,9 @@ export default class GameScene extends Phaser.Scene {
     const n = SKITTLE_COLORS.length;
     const totalW = n * pipD + (n - 1) * gap;
     const startX = GAME_WIDTH / 2 - totalW / 2 + pipD / 2;
-    const y = 34;
+    // extra margin from the very top edge -- mobile browser chrome is the
+    // first thing to eat into that space
+    const y = 54;
     const pipScale = pipD / 64;
 
     this.meterPips = SKITTLE_COLORS.map((c, i) => {
@@ -234,7 +236,7 @@ export default class GameScene extends Phaser.Scene {
       return { bg, fg, mark, outline };
     });
 
-    this.scoreText = this.add.text(16, 16, 'SCORE 0', {
+    this.scoreText = this.add.text(16, 36, 'SCORE 0', {
       fontFamily: 'Trebuchet MS, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#ffffff',
     }).setStroke('#00000088', 3).setDepth(30);
 
