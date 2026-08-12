@@ -30,6 +30,13 @@ function pickMaleVoice(voices) {
 // speakFlavor() to see, on-screen, what actually happened (no devtools needed)
 export const speechDebug = { status: 'idle' };
 
+// Safari has a well-known bug where an utterance with no surviving JS
+// reference can get garbage-collected mid-flight -- speak() succeeds, no
+// error ever fires, but the utterance just silently vanishes before it's
+// spoken. Module-level references keep them alive for their full duration.
+let currentUtterance = null;
+let currentPrimer = null;
+
 function buildUtterance(text, voice, pitch, rate) {
   const utter = new SpeechSynthesisUtterance(text);
   if (voice) utter.voice = voice;
@@ -58,6 +65,7 @@ export function unlockSpeech() {
   // producing no real output and don't fully register it as "played" for
   // gesture-unlock purposes
   primer.volume = 0.01;
+  currentPrimer = primer; // keep alive -- see comment near the module-level let
   window.speechSynthesis.speak(primer);
   // kicks off voice-list loading early too, so it's more likely to already
   // be populated by the time a real speakFlavor() call needs it
@@ -85,7 +93,9 @@ export function speakFlavor(text, { pitch = 0.3, rate = 0.6 } = {}) {
   // never populate on a given device, that meant NEVER actually speaking,
   // since the async path reliably misses iOS's gesture-linked speak() window.
   speechDebug.status = `calling speak() (${voices.length} voices)`;
-  window.speechSynthesis.speak(buildUtterance(text, voices.length ? pickMaleVoice(voices) : null, pitch, rate));
+  const utter = buildUtterance(text, voices.length ? pickMaleVoice(voices) : null, pitch, rate);
+  currentUtterance = utter; // keep alive -- see comment near the module-level let
+  window.speechSynthesis.speak(utter);
 
   // if the voice list wasn't ready, load it in the background so later
   // calls can use our preferred voice instead of the default
