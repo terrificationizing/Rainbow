@@ -34,3 +34,16 @@ const game = new Phaser.Game({
 // dev-only hook so texture/asset changes can be inspected directly from the
 // console instead of guessing blind
 window.__game = game;
+
+// Mobile Safari's address bar/toolbar shows and hides dynamically, and
+// window.innerWidth/innerHeight don't always update reliably or immediately
+// when that happens -- window.visualViewport is the API built specifically
+// to report the REAL currently-visible area, so drive Phaser's resize off
+// that instead of trusting the window size alone.
+if (window.visualViewport) {
+  const syncToVisualViewport = () => {
+    game.scale.resize(window.visualViewport.width, window.visualViewport.height);
+  };
+  window.visualViewport.addEventListener('resize', syncToVisualViewport);
+  window.visualViewport.addEventListener('scroll', syncToVisualViewport);
+}
