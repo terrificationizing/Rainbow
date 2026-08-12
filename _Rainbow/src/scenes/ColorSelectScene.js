@@ -46,7 +46,14 @@ export default class ColorSelectScene extends Phaser.Scene {
     }).setOrigin(0.5).setStroke('#000000', 3).setDepth(60);
     this.time.addEvent({
       delay: 150, loop: true,
-      callback: () => debugText.setText(`speech: ${speechDebug.status}`),
+      // polled live state, not event callbacks -- onstart/onerror can be
+      // unreliable even when speech genuinely does or doesn't play, so this
+      // is the more trustworthy read on what the browser is actually doing
+      callback: () => {
+        const s = window.speechSynthesis;
+        const live = s ? `spk:${s.speaking ? 1 : 0} pend:${s.pending ? 1 : 0} pause:${s.paused ? 1 : 0}` : 'no API';
+        debugText.setText(`speech: ${speechDebug.status} | ${live}`);
+      },
     });
 
     SKITTLE_COLORS.forEach((c, i) => {
