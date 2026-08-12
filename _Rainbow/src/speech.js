@@ -26,13 +26,7 @@ function pickMaleVoice(voices) {
   return unlabeled.find((v) => v.lang?.startsWith('en')) || unlabeled[0] || voices[0];
 }
 
-export async function speakFlavor(text, { pitch = 0.3, rate = 0.6 } = {}) {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-
-  if (!cachedVoices) cachedVoices = await getVoices();
-  const voice = pickMaleVoice(cachedVoices);
-
+function buildUtterance(text, voice, pitch, rate) {
   const utter = new SpeechSynthesisUtterance(text);
   if (voice) utter.voice = voice;
   // Pitch is the one lever that reliably reads as "more male" regardless of which
@@ -40,5 +34,38 @@ export async function speakFlavor(text, { pitch = 0.3, rate = 0.6 } = {}) {
   utter.pitch = pitch;
   utter.rate = rate;
   utter.volume = 0.9;
-  window.speechSynthesis.speak(utter);
+  return utter;
+}
+
+// iOS Safari (and WebViews built on it) only allows speechSynthesis.speak()
+// to fire when it's called *synchronously* inside a user-gesture event --
+// even a single microtask of `await` in between is enough to make it fail
+// silently. Call this directly inside the earliest tap/click in the game
+// (before any speakFlavor call is needed) to register the page as approved.
+export function unlockSpeech() {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+}
+
+export function speakFlavor(text, { pitch = 0.3, rate = 0.6 } = {}) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+
+  // voices are already cached (or synchronously available) most of the time
+  // after the first call -- speak immediately, still inside the same
+  // synchronous gesture handler, instead of always awaiting a Promise first
+  const synchronousVoices = cachedVoices || window.speechSynthesis.getVoices();
+  if (synchronousVoices.length) {
+    cachedVoices = synchronousVoices;
+    window.speechSynthesis.speak(buildUtterance(text, pickMaleVoice(cachedVoices), pitch, rate));
+    return;
+  }
+
+  // fallback for the rare case voices genuinely aren't loaded yet -- this
+  // path is async and may miss iOS's gesture window, but it's better than
+  // nothing on platforms that load voices lazily
+  getVoices().then((voices) => {
+    cachedVoices = voices;
+    window.speechSynthesis.speak(buildUtterance(text, pickMaleVoice(voices), pitch, rate));
+  });
 }
