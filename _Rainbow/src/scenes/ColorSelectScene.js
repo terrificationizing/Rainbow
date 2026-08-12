@@ -69,7 +69,7 @@ export default class ColorSelectScene extends Phaser.Scene {
           this.time.delayedCall(500, () => this.scene.start('VehicleSelect'));
           return;
         }
-        speakFlavor(c.flavor, c.voice);
+        this.sound.play(`flavor_${c.flavor}`);
         this.popFlavorWord(x, y, c.flavor);
         // the candy itself stays the same size -- it glows instead of enlarging
         this.tweens.add({ targets: glow, alpha: 0.8, scale: 1.4, duration: 220, yoyo: true, repeat: 2 });

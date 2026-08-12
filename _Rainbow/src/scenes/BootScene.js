@@ -61,6 +61,14 @@ export default class BootScene extends Phaser.Scene {
     // visibly emerges from the wrapper rather than poking out past its edges,
     // at that same aspect ratio rather than stretched
     this.load.svg('bag', 'wrapper.svg', { width: 720, height: 449 });
+
+    // real recorded flavor call-outs for the color-pick screen, replacing
+    // the old browser text-to-speech voice (unreliable across devices)
+    this.load.audio('flavor_lemon', 'lemon.mp3');
+    this.load.audio('flavor_grape', 'grape.mp3');
+    this.load.audio('flavor_lime', 'lime.mp3');
+    this.load.audio('flavor_orange', 'orange.mp3');
+    this.load.audio('flavor_strawberry', 'strawberry.mp3');
   }
 
   create() {
