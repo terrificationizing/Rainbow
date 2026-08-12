@@ -18,7 +18,11 @@ const game = new Phaser.Game({
   height: GAME_HEIGHT,
   backgroundColor: '#4b7fd6',
   scale: {
-    mode: Phaser.Scale.FIT,
+    // ENVELOP scales up to fully COVER the viewport (cropping slight overflow
+    // on aspect-ratio mismatches) instead of FIT's letterboxing, which left
+    // visible flat-color bars around the game on phones whose screen aspect
+    // ratio doesn't exactly match GAME_WIDTH:GAME_HEIGHT
+    mode: Phaser.Scale.ENVELOP,
     // centering is handled by #app's flexbox in style.css -- Phaser's own
     // CENTER_BOTH also injects a margin-left on the canvas, and the two
     // centering methods stack, shoving the canvas off to the right
