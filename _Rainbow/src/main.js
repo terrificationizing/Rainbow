@@ -18,14 +18,14 @@ const game = new Phaser.Game({
   height: GAME_HEIGHT,
   backgroundColor: '#4b7fd6',
   scale: {
-    // ENVELOP scales up to fully COVER the viewport (cropping slight overflow
-    // on aspect-ratio mismatches) instead of FIT's letterboxing, which left
-    // visible flat-color bars around the game on phones whose screen aspect
-    // ratio doesn't exactly match GAME_WIDTH:GAME_HEIGHT
-    mode: Phaser.Scale.ENVELOP,
-    // centering is handled by #app's flexbox in style.css -- Phaser's own
-    // CENTER_BOTH also injects a margin-left on the canvas, and the two
-    // centering methods stack, shoving the canvas off to the right
+    // Back to FIT: it guarantees the whole game always stays fully inside
+    // the visible viewport (small flat-color bars on aspect-ratio mismatches,
+    // but NEVER hides content). ENVELOP was tried to eliminate those bars,
+    // but it deliberately draws past the viewport edges to crop -- combined
+    // with mobile Safari's shifting toolbar, that repeatedly hid real UI
+    // (HUD, mute button, headers) instead of just cropping empty margin.
+    // Not worth the tradeoff: a visible border beats broken functionality.
+    mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.NO_CENTER,
   },
   scene: [BootScene, TitleScene, ColorSelectScene, VehicleSelectScene, IntroScene, GameScene, GameOverScene],
