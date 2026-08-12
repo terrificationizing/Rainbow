@@ -264,6 +264,34 @@ export default class GameScene extends Phaser.Scene {
     this.rightZone.on('pointerdown', () => this.changeLane(1));
 
     this.cursors = this.input.keyboard?.createCursorKeys();
+
+    // double-chevron hints at the bottom of each half, so it's clear the
+    // whole left/right side of the screen is tappable to steer -- gently
+    // pulsing so they read as a persistent control hint, not a one-off toast
+    this.buildTapHints();
+  }
+
+  buildTapHints() {
+    const y = GAME_HEIGHT - 54;
+    const buildChevronPair = (cx, dir) => {
+      const g = this.add.graphics().setDepth(45).setAlpha(0.55);
+      [0, 16].forEach((offset) => {
+        const x = cx + offset * dir;
+        g.fillStyle(0xffffff, 1);
+        g.lineStyle(2, 0x2a0f4a, 0.6);
+        const tri = dir < 0
+          ? [x + 9, y - 11, x - 9, y, x + 9, y + 11]
+          : [x - 9, y - 11, x + 9, y, x - 9, y + 11];
+        g.fillTriangle(...tri);
+        g.strokeTriangle(...tri);
+      });
+      this.tweens.add({
+        targets: g, alpha: 0.15, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      });
+      return g;
+    };
+    buildChevronPair(GAME_WIDTH / 4, -1);
+    buildChevronPair((GAME_WIDTH / 4) * 3, 1);
   }
 
   // purely cosmetic background: skittle-colored "planets" and stars drifting
