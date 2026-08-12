@@ -525,6 +525,14 @@ class MusicManager {
     btn.textContent = '💿';
     Object.assign(btn.style, {
       position: 'fixed',
+      // pinned straight to the real visible corner via safe-area-aware CSS,
+      // not the canvas's own geometry -- Scale.ENVELOP deliberately makes
+      // the canvas bigger than the viewport in one dimension so it can crop,
+      // which meant canvas.getBoundingClientRect() (the old approach here)
+      // could report coordinates outside the visible screen and push this
+      // button off-screen entirely
+      top: 'calc(env(safe-area-inset-top, 0px) + 6px)',
+      right: 'calc(env(safe-area-inset-right, 0px) + 6px)',
       zIndex: 1000,
       width: '48px',
       height: '48px',
@@ -542,22 +550,6 @@ class MusicManager {
       btn.style.opacity = this.muted ? '0.4' : '1';
     });
     document.body.appendChild(btn);
-
-    // Phaser's FIT scale mode letterboxes/pillarboxes the actual canvas
-    // inside the browser viewport (preserving aspect ratio instead of
-    // stretching), so a plain viewport-fixed position drifts outside the
-    // visible game frame on resize -- track the canvas's real rendered
-    // bounds instead.
-    const positionBtn = () => {
-      const canvas = document.querySelector('#app canvas');
-      if (!canvas) { requestAnimationFrame(positionBtn); return; }
-      const rect = canvas.getBoundingClientRect();
-      btn.style.top = `${rect.top + 6}px`;
-      btn.style.left = `${rect.right - 54}px`;
-    };
-    positionBtn();
-    window.addEventListener('resize', positionBtn);
-    new ResizeObserver(positionBtn).observe(document.body);
   }
 }
 
