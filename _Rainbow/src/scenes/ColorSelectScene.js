@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import * as Tone from 'tone';
 import { GAME_WIDTH, GAME_HEIGHT, SKITTLE_COLORS } from '../config.js';
 import { createWindow, createCandy, paintSky, scatterGlitter, createEscButton } from '../ui.js';
-import { speakFlavor, unlockSpeech, speechDebug } from '../speech.js';
+import { speakFlavor, speechDebug } from '../speech.js';
 import { music } from '../audio.js';
 
 export default class ColorSelectScene extends Phaser.Scene {
@@ -58,11 +58,15 @@ export default class ColorSelectScene extends Phaser.Scene {
 
       const hit = this.add.circle(x, y, 50 * (candyScale / 1.3)).setInteractive({ useHandCursor: true });
       hit.on('pointerdown', () => {
-        // defensive re-attempt at unlocking audio/speech on every tap here --
-        // the very first attempt (on the Title button) can be unreliable on
-        // iOS, and retrying on an already-unlocked context is a harmless no-op
+        // defensive re-attempt at unlocking Tone's audio context on every tap
+        // here -- the very first attempt (on the Title button) can be
+        // unreliable on iOS, and retrying on an already-running context is a
+        // harmless no-op. NOT calling unlockSpeech() here anymore: it queues
+        // its own speak() call, and if that primer utterance never cleanly
+        // finishes, the real speakFlavor() call right after it gets stuck
+        // waiting behind it in the queue forever -- unlockSpeech() only
+        // needs to run once, on the Title screen, before any of this.
         Tone.start();
-        unlockSpeech();
 
         // whichever skittle is the first to reach two clicks wins, even if other
         // skittles were clicked in between
