@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import * as Tone from 'tone';
 import { GAME_WIDTH } from '../config.js';
 import { createWindow, createButton, paintSky, scatterGlitter } from '../ui.js';
 import { music } from '../audio.js';
@@ -111,8 +112,13 @@ export default class TitleScene extends Phaser.Scene {
 
     btn.hitZone.on('pointerdown', () => {
       // the earliest real tap in the whole game -- registers speech synthesis
-      // as gesture-approved before ColorSelectScene ever needs speakFlavor()
+      // as gesture-approved before ColorSelectScene ever needs speakFlavor().
+      // Tone.start() is also called defensively here (music.init() already
+      // tries it on the page's very first pointerdown) since that first
+      // attempt can be unreliable on iOS -- calling it again on an already-
+      // running context is a harmless no-op, so extra attempts only help.
       unlockSpeech();
+      Tone.start();
       music.playBloop();
       this.cameras.main.flash(200, 255, 255, 255);
       this.time.delayedCall(150, () => this.scene.start('ColorSelect'));
