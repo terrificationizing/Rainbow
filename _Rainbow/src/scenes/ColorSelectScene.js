@@ -30,6 +30,14 @@ export default class ColorSelectScene extends Phaser.Scene {
       color: '#6a1fb0',
     }).setOrigin(0.5);
 
+    // tapping the body of the header box (below the title bar, so the X
+    // stays untouched) while Music Mode is on is a quick way to switch it
+    // back off without reaching all the way down to the toggle
+    const boxOffZone = this.add.zone(22 + (GAME_WIDTH - 44) / 2, 70 + 38 + 34, GAME_WIDTH - 52, 68)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+    boxOffZone.on('pointerdown', () => this.setMusicMode(false));
+
     // single centered column, original candy size
     const centerX = GAME_WIDTH / 2;
     // pulled up and slightly closer together vs. the original 280/125 --
@@ -192,24 +200,33 @@ export default class ColorSelectScene extends Phaser.Scene {
     };
     drawTrack(false);
 
-    const hitZone = this.add.zone(trackCenterX, toggleY, trackW + 14, trackH + 14)
-      .setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(57);
-    hitZone.on('pointerdown', () => {
-      this.musicMode = !this.musicMode;
-      drawTrack(this.musicMode);
+    // shared so anything else (like tapping the header box) can flip Music
+    // Mode too, not just the switch itself. No-ops if already in that state.
+    this.setMusicMode = (on) => {
+      if (this.musicMode === on) return;
+      this.musicMode = on;
+      // whichever direction the switch flips, any clicks a skittle already
+      // had queued up before the flip shouldn't count toward the next
+      // click-twice-to-enter-the-game attempt -- always start that fresh
+      this.clickCounts = {};
+      drawTrack(on);
       this.tweens.add({
         targets: knob,
-        x: this.musicMode ? trackX + trackW - knobR - 2 : trackX + knobR + 2,
+        x: on ? trackX + trackW - knobR - 2 : trackX + knobR + 2,
         duration: 180,
         ease: 'Cubic.easeOut',
       });
-      this.setMusicIconsVisible(this.musicMode);
-      if (this.musicMode) {
+      this.setMusicIconsVisible(on);
+      if (on) {
         Tone.start();
         music.playPianoToggle();
         this.spawnMusicNotes(trackCenterX, toggleY);
       }
-    });
+    };
+
+    const hitZone = this.add.zone(trackCenterX, toggleY, trackW + 14, trackH + 14)
+      .setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(57);
+    hitZone.on('pointerdown', () => this.setMusicMode(!this.musicMode));
   }
 
   // a floating, sparkling instrument icon -- hidden and untappable until
