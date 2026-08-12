@@ -42,14 +42,24 @@ function buildUtterance(text, voice, pitch, rate) {
 // even a single microtask of `await` in between is enough to make it fail
 // silently. Call this directly inside the earliest tap/click in the game
 // (before any speakFlavor call is needed) to register the page as approved.
+// Uses a single space, not an empty string -- some engines silently no-op
+// on a truly empty utterance instead of treating it as a real speak() call.
 export function unlockSpeech() {
   if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+  const primer = new SpeechSynthesisUtterance(' ');
+  primer.volume = 0;
+  window.speechSynthesis.speak(primer);
+  // kicks off voice-list loading early too, so it's more likely to already
+  // be populated by the time a real speakFlavor() call needs it
+  window.speechSynthesis.getVoices();
 }
 
 export function speakFlavor(text, { pitch = 0.3, rate = 0.6 } = {}) {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
+  // webkit/iOS can leave the synth stuck in a paused state after an earlier
+  // interrupted utterance; resume() is a harmless no-op otherwise
+  window.speechSynthesis.resume();
 
   // voices are already cached (or synchronously available) most of the time
   // after the first call -- speak immediately, still inside the same
