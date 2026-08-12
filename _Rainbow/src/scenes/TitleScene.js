@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH } from '../config.js';
 import { createWindow, createButton, paintSky, scatterGlitter } from '../ui.js';
 import { music } from '../audio.js';
+import { unlockSpeech } from '../speech.js';
 
 export default class TitleScene extends Phaser.Scene {
   constructor() {
@@ -109,6 +110,9 @@ export default class TitleScene extends Phaser.Scene {
     });
 
     btn.hitZone.on('pointerdown', () => {
+      // the earliest real tap in the whole game -- registers speech synthesis
+      // as gesture-approved before ColorSelectScene ever needs speakFlavor()
+      unlockSpeech();
       music.playBloop();
       this.cameras.main.flash(200, 255, 255, 255);
       this.time.delayedCall(150, () => this.scene.start('ColorSelect'));
