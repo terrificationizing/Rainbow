@@ -64,21 +64,21 @@ export function speakFlavor(text, { pitch = 0.3, rate = 0.6 } = {}) {
   // interrupted utterance; resume() is a harmless no-op otherwise
   window.speechSynthesis.resume();
 
-  // voices are already cached (or synchronously available) most of the time
-  // after the first call -- speak immediately, still inside the same
-  // synchronous gesture handler, instead of always awaiting a Promise first
-  const synchronousVoices = cachedVoices || window.speechSynthesis.getVoices();
-  if (synchronousVoices.length) {
-    cachedVoices = synchronousVoices;
-    window.speechSynthesis.speak(buildUtterance(text, pickMaleVoice(cachedVoices), pitch, rate));
-    return;
-  }
+  const voices = cachedVoices || window.speechSynthesis.getVoices();
+  if (voices.length) cachedVoices = voices;
 
-  // fallback for the rare case voices genuinely aren't loaded yet -- this
-  // path is async and may miss iOS's gesture window, but it's better than
-  // nothing on platforms that load voices lazily
-  getVoices().then((voices) => {
-    cachedVoices = voices;
-    window.speechSynthesis.speak(buildUtterance(text, pickMaleVoice(voices), pitch, rate));
-  });
+  // ALWAYS speak right now, synchronously, in the same gesture-handler call
+  // stack -- even with no voice list yet (voice ends up undefined, so the
+  // utterance just uses the platform's default voice instead of our chosen
+  // "male" one). Previously this only spoke when voices were already known,
+  // and otherwise waited on the async getVoices() path below -- if voices
+  // never populate on a given device, that meant NEVER actually speaking,
+  // since the async path reliably misses iOS's gesture-linked speak() window.
+  window.speechSynthesis.speak(buildUtterance(text, voices.length ? pickMaleVoice(voices) : null, pitch, rate));
+
+  // if the voice list wasn't ready, load it in the background so later
+  // calls can use our preferred voice instead of the default
+  if (!voices.length) {
+    getVoices().then((v) => { cachedVoices = v; });
+  }
 }
