@@ -19,7 +19,10 @@ const game = new Phaser.Game({
   backgroundColor: '#4b7fd6',
   scale: {
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
+    // centering is handled by #app's flexbox in style.css -- Phaser's own
+    // CENTER_BOTH also injects a margin-left on the canvas, and the two
+    // centering methods stack, shoving the canvas off to the right
+    autoCenter: Phaser.Scale.NO_CENTER,
   },
   scene: [BootScene, TitleScene, ColorSelectScene, VehicleSelectScene, IntroScene, GameScene, GameOverScene],
 });
