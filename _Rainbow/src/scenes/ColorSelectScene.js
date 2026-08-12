@@ -38,24 +38,6 @@ export default class ColorSelectScene extends Phaser.Scene {
 
     this.clickCounts = {};
 
-    // TEMPORARY on-screen diagnostic for the "flavor mp3 doesn't play"
-    // report -- Phaser's sound system has its own separate audio context
-    // from Tone.js's, so it needs its own unlock; this shows whether it's
-    // actually locked/unlocked and what play() reports, live, no devtools
-    // needed. Safe to remove once this is sorted out.
-    const debugText = this.add.text(GAME_WIDTH / 2, this.cameras.main.height - 26, 'snd: idle', {
-      fontFamily: 'Trebuchet MS, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#ffffff', align: 'center',
-    }).setOrigin(0.5).setStroke('#000000', 3).setDepth(60);
-    this.time.addEvent({
-      delay: 150, loop: true,
-      callback: () => {
-        const snd = this.sound;
-        const ctxState = snd.context ? snd.context.state : 'no ctx';
-        const line1 = `locked:${snd.locked ? 1 : 0} ctx:${ctxState} mute:${snd.mute ? 1 : 0}`;
-        debugText.setText(`snd: ${line1}\n${this.lastPlayResult || '(no tap yet)'}`);
-      },
-    });
-
     SKITTLE_COLORS.forEach((c, i) => {
       const x = centerX;
       const y = startY + i * gap;
@@ -97,9 +79,9 @@ export default class ColorSelectScene extends Phaser.Scene {
         // can never take the rest of this interaction down with it -- the
         // popup animation and glow below must always run regardless
         try {
-          this.lastPlayResult = `play(${c.flavor})=${this.sound.play(`flavor_${c.flavor}`)}`;
+          this.sound.play(`flavor_${c.flavor}`);
         } catch (err) {
-          this.lastPlayResult = `play(${c.flavor}) threw: ${err.message}`;
+          console.error('flavor sound failed to play:', err);
         }
         this.popFlavorWord(x, y, c.flavor);
         // the candy itself stays the same size -- it glows instead of enlarging
