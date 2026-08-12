@@ -69,7 +69,14 @@ export default class ColorSelectScene extends Phaser.Scene {
           this.time.delayedCall(500, () => this.scene.start('VehicleSelect'));
           return;
         }
-        this.sound.play(`flavor_${c.flavor}`);
+        // wrapped so a playback problem (missing asset, locked audio, etc.)
+        // can never take the rest of this interaction down with it -- the
+        // popup animation and glow below must always run regardless
+        try {
+          this.sound.play(`flavor_${c.flavor}`);
+        } catch (err) {
+          console.error('flavor sound failed to play:', err);
+        }
         this.popFlavorWord(x, y, c.flavor);
         // the candy itself stays the same size -- it glows instead of enlarging
         this.tweens.add({ targets: glow, alpha: 0.8, scale: 1.4, duration: 220, yoyo: true, repeat: 2 });
