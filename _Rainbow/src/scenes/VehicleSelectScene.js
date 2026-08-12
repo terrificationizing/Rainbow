@@ -16,6 +16,11 @@ export default class VehicleSelectScene extends Phaser.Scene {
   }
 
   create() {
+    // Phaser reuses this scene instance across visits -- without resetting
+    // this here, a pick from an earlier playthrough leaves it stuck `true`
+    // forever, silently blocking every click on the next visit.
+    this.picking = false;
+
     paintSky(this);
     scatterGlitter(this, 26);
     createEscButton(this);
@@ -28,11 +33,13 @@ export default class VehicleSelectScene extends Phaser.Scene {
       color: '#111111',
     }).setOrigin(0.5);
 
-    const startY = 300;
-    const gap = 180;
+    // scooted up and tightened so all 4 panels (incl. the floppy disk) fit
+    // on screen without being cut off at the bottom
+    const startY = 250;
+    const gap = 155;
 
     const panelW = GAME_WIDTH - 60;
-    const panelH = 150;
+    const panelH = 140;
     const panelRadius = 16;
 
     VEHICLES.forEach((v, i) => {
