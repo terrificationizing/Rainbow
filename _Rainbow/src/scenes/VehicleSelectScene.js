@@ -34,8 +34,9 @@ export default class VehicleSelectScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // scooted up and tightened so all 4 panels (incl. the floppy disk) fit
-    // on screen without being cut off at the bottom
-    const startY = 250;
+    // on screen without being cut off at the bottom, with real breathing
+    // room below the header (the header's bottom edge sits at y=180)
+    const startY = 280;
     const gap = 155;
 
     const panelW = GAME_WIDTH - 60;
