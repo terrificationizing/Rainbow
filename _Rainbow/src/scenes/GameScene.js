@@ -11,7 +11,7 @@ const DIST_TRAVEL = 950; // world-distance an obstacle travels before reaching t
 const SEG_LENGTH = 300;
 const BEACH_CHANCE = 0.32;
 const HEAD_CHECK_INTERVAL = 500;
-const HEAD_CHANCE = 0.05;
+const HEAD_CHANCE = 0.08;
 const HEAD_SIDE_OFFSET = 260;
 const DOLPHIN_CHANCE = 0.1;
 
@@ -22,7 +22,7 @@ const OBSTACLE_TYPES = [
   { key: 'obs_cursor', weight: 39.75 },
   { key: 'obs_crying', weight: 10 },
   { key: 'obs_computer', weight: 10 },
-  { key: 'obs_logguy', weight: 0.5 },
+  { key: 'obs_logguy', weight: 1.5 },
 ];
 
 // flavor text flashed when each obstacle type is hit
