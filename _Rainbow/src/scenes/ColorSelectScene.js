@@ -75,7 +75,15 @@ export default class ColorSelectScene extends Phaser.Scene {
           console.error('flavor sound failed to play:', err);
         }
         this.popFlavorWord(x, y, c.flavor);
-        // the candy itself stays the same size -- it glows instead of enlarging
+        // the candy itself stays the same size -- it glows instead of enlarging.
+        // killing any tween already in flight (and resetting to the known base
+        // values) before starting a new one keeps rapid re-taps from stacking
+        // overlapping tweens on the same properties -- without this, a second
+        // tap starting mid-pulse would yoyo back to whatever alpha/scale it was
+        // at *then*, not the original resting state, leaving the glow visibly
+        // stuck larger/brighter than it started.
+        this.tweens.killTweensOf(glow);
+        glow.setAlpha(1).setScale(1);
         this.tweens.add({ targets: glow, alpha: 0.8, scale: 1.4, duration: 220, yoyo: true, repeat: 2 });
       };
 
